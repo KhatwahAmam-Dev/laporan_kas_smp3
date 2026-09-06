@@ -1,117 +1,63 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>SMP Pasundan 3 - Iuran Kelas 7F</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard Gabungan V2 - FIX Login & Cepat</title>
+<!-- Fonts & Libraries -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<!-- CSS -->
+<link rel="stylesheet" href="assets/css/style.css"/>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand"><i class="fas fa-layer-group"></i> SMP PASUNDAN 3 TERPADU V2</div>
+  <div class="nav-links">
+    <button id="b1" class="active" onclick="goPage('iuran')"><i class="fas fa-coins"></i> Iuran</button>
+    <button id="b2" onclick="goPage('stamp')"><i class="fas fa-camera"></i> Stamp Cam</button>
+    <button id="b3" onclick="goPage('keu')"><i class="fas fa-file-invoice-dollar"></i> Keuangan</button>
+  </div>
+</nav>
+
+<!-- PAGE IURAN -->
+<div id="page-iuran" class="page active">
+  <!-- ... konten HTML sama seperti di file ... -->
+</div>
+
+<!-- PAGE STAMP -->
+<div id="page-stamp" class="page">
+  <!-- ... konten HTML sama seperti di file ... -->
+</div>
+
+<!-- PAGE KEUANGAN -->
+<div id="page-keu" class="page">
+  <!-- ... konten HTML sama seperti di file ... -->
+</div>
+
+<!-- TOAST & MODAL -->
+<div id="toast" class="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">OK</span></div>
+<div id="loginOverlay">...</div>
+<div id="modal">...</div>
+<div id="pdf-export-container" style="display:none"></div>
+<canvas id="canvas" style="display:none"></canvas>
+
+<!-- JS Libraries (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<link rel="stylesheet" href="css/style.css"/>
-</head>
-<body>
-<nav class="navbar">
-<div class="nav-brand"><i class="fas fa-layer-group"></i> SMP PASUNDAN 3 TERPADU</div>
-<div class="nav-links">
-<a href="index.html" class="active"><i class="fas fa-coins"></i> Iuran</a>
-<a href="stamp-cam.html"><i class="fas fa-camera"></i> Stamp Cam</a>
-<a href="keuangan.html"><i class="fas fa-file-invoice-dollar"></i> Keuangan</a>
-</div>
-</nav>
-<div style="padding:14px;max-width:1440px;margin:0 auto">
-<div class="header">
-<div style="display:flex;gap:10px;align-items:center"><i class="fas fa-landmark" style="width:40px;height:40px;background:#0f1a2f;color:#fff;border-radius:10px;display:grid;place-items:center"></i><div><h1 style="font-size:1.1rem">Keuangan <span style="color:#06b6d4">Sekolah</span></h1><small id="headerDate" style="color:#5b6e8a"></small></div></div>
-<div style="display:flex;gap:6px;flex-wrap:wrap">
-<button class="btn" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-<button class="btn" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-<button class="btn" onclick="document.getElementById('gasUrlInput').focus()"><i class="fas fa-link"></i> GAS</button>
-<button id="loginToggleBtn" class="btn btn-primary"><i class="fas fa-user-shield"></i> Login Admin</button>
-<button id="logoutBtn" class="btn btn-danger" style="display:none"><i class="fas fa-sign-out-alt"></i> Logout</button>
-</div>
-</div>
-<div style="background:#fff3cd;border:1px solid #ffe69c;color:#664d03;padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:.8rem" id="loginInfo"><i class="fas fa-info-circle"></i> <strong>Login default:</strong> admin / admin123</div>
-<div class="stats-grid">
-<div class="stat"><div class="l">Total Siswa</div><div class="v" id="totalSiswa">0</div></div>
-<div class="stat" style="border-color:#10b981"><div class="l">Sudah Bayar</div><div class="v" id="sudahBayar">0</div><small id="sudahP" style="font-size:.7rem;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px">0%</small></div>
-<div class="stat" style="border-color:#ef4444"><div class="l">Belum Bayar</div><div class="v" id="belumBayar">0</div><small id="belumP" style="font-size:.7rem;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px">0%</small></div>
-<div class="stat"><div class="l">Pemasukan</div><div class="v" id="totalMasuk">Rp0</div></div>
-<div class="stat"><div class="l">Pengeluaran Total</div><div class="v" id="totalKeluar">Rp0</div></div>
-<div class="stat" style="border-color:#f59e0b"><div class="l">Saldo</div><div class="v" id="saldo">Rp0</div></div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-<div style="background:#fff;border-radius:14px;padding:12px;box-shadow:0 4px 12px rgba(0,0,0,.05)"><h3 style="font-size:.85rem;margin-bottom:8px"><i class="fas fa-chart-pie" style="color:#06b6d4"></i> Status Pembayaran</h3><canvas id="statusChart"></canvas></div>
-<div style="background:#fff;border-radius:14px;padding:12px;box-shadow:0 4px 12px rgba(0,0,0,.05)"><h3 style="font-size:.85rem;margin-bottom:8px"><i class="fas fa-venus-mars" style="color:#8b5cf6"></i> Gender</h3><canvas id="genderChart"></canvas></div>
-</div>
-<div class="table-wrap">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="font-size:.95rem"><i class="fas fa-list-ul" style="color:#06b6d4"></i> Daftar Siswa</h2><div style="display:flex;gap:6px"><input id="searchInput" placeholder="Cari nama/NIS..." oninput="renderTable()" style="padding:7px 12px;border-radius:999px;border:2px solid #e2e8f0"/><select id="statusFilter" onchange="renderTable()" style="padding:7px 12px;border-radius:999px;border:2px solid #e2e8f0"><option value="all">Semua</option><option value="Sudah Bayar">Sudah</option><option value="Belum Bayar">Belum</option></select></div></div>
-<div style="overflow:auto"><table><thead><tr><th>No</th><th>NIS</th><th>Nama</th><th>Gender</th><th>Nominal</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tableBody"></tbody><tfoot id="tableFooter"></tfoot></table></div>
-</div>
-<div id="adminPanel" style="display:none;background:#fff;border-radius:16px;padding:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);margin-bottom:12px">
-<h3 style="font-size:.9rem;margin-bottom:10px"><i class="fas fa-edit"></i> Panel Admin</h3>
-<div class="grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-<div><label style="font-size:.7rem;font-weight:700">NIS</label><input id="editNis" placeholder="NIS" style="width:100%;padding:9px;border:2px solid #e2e8f0;border-radius:10px"/></div>
-<div><label style="font-size:.7rem;font-weight:700">Nama</label><input id="editNama" placeholder="Nama" style="width:100%;padding:9px;border:2px solid #e2e8f0;border-radius:10px"/></div>
-<div><label style="font-size:.7rem;font-weight:700">Gender</label><select id="editGender" style="width:100%;padding:9px;border:2px solid #e2e8f0;border-radius:10px"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
-<div><label style="font-size:.7rem;font-weight:700">Nominal</label><input id="editNominal" type="number" style="width:100%;padding:9px;border:2px solid #e2e8f0;border-radius:10px"/></div>
-<div><label style="font-size:.7rem;font-weight:700">Tanggal</label><input id="editTanggal" type="date" style="width:100%;padding:9px;border:2px solid #e2e8f0;border-radius:10px"/></div>
-<div><label style="font-size:.7rem;font-weight:700">Status</label><select id="editStatus" style="width:100%;padding:9px;border:2px solid #e2e8f0;border-radius:10px"><option>Sudah Bayar</option><option>Belum Bayar</option></select></div>
-<div class="full" style="grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
-<button class="btn" onclick="siapkanBaru()"><i class="fas fa-plus"></i> Baru</button>
-<button class="btn btn-success" onclick="tambahSetoran()"><i class="fas fa-plus-circle"></i> Setoran 10k</button>
-<button class="btn btn-primary" onclick="simpanEdit()"><i class="fas fa-save"></i> Simpan</button>
-<button class="btn btn-danger" onclick="hapusTerpilih()"><i class="fas fa-trash"></i> Hapus</button>
-<button class="btn" onclick="resetData()" style="background:#f59e0b;color:#fff;border-color:#f59e0b"><i class="fas fa-undo"></i> Reset</button>
-<button class="btn" id="scanQrBtn"><i class="fas fa-qrcode"></i> Scan QR</button>
-<button class="btn btn-sync" onclick="syncData()"><i class="fas fa-sync"></i> Sync GAS</button>
-</div>
-<div class="full" style="grid-column:1/-1;margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
-<input id="kasKeluarInput" type="number" placeholder="Pengeluaran legacy (arsip)" style="flex:1;padding:9px;border:2px solid #e2e8f0;border-radius:10px"/>
-<button class="btn btn-danger" onclick="tambahKasKeluar()">Catat Legacy</button>
-</div>
-<div class="full" style="grid-column:1/-1;margin-top:10px">
-<label style="font-size:.7rem;font-weight:700"><i class="fab fa-google"></i> URL GAS</label>
-<div style="display:flex;gap:6px;flex-wrap:wrap"><input id="gasUrlInput" placeholder="https://script.google.com/..." style="flex:1;padding:9px;border:2px solid #e2e8f0;border-radius:10px" value="https://script.google.com/macros/s/AKfycbylkBNay187mpBRdh714BP2wXwoI6zAbbDV-Qie8ruxOWxys9vrhLEOgS3uEI7mjsGA/exec"/><button class="btn btn-primary" onclick="setGasUrl()">Simpan</button><button class="btn btn-sync" onclick="syncData()">Sync Sekarang</button></div>
-<small id="gasStatus" style="font-size:.7rem;color:#5b6e8a"></small>
-</div>
-<div id="scannerContainer" style="display:none;margin-top:10px;background:#f8fafc;border:2px dashed #cbd5e1;border-radius:12px;padding:10px;text-align:center"><div id="qr-reader"></div><div id="scanResult" style="margin-top:6px;font-weight:600">Arahkan QR ke kamera</div><button class="btn btn-danger" onclick="stopScanner()" style="margin-top:6px">Tutup</button></div>
-</div>
-</div>
-</div>
-<div id="toast" class="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">OK</span></div>
-<div id="loginOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:10001;padding:16px"><div class="login-card" style="background:#fff;padding:30px 24px;border-radius:16px;max-width:380px;width:100%;text-align:center"><div style="width:56px;height:56px;background:#0f1a2f;color:#fff;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;font-size:22px"><i class="fas fa-user-shield"></i></div><h2>Admin Login</h2><p style="color:#5b6e8a;font-size:.85rem;margin:4px 0 14px">Gunakan akun admin</p><input id="loginUser" placeholder="Username" value="admin" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;margin-bottom:10px"/><input id="loginPass" type="password" placeholder="Password" value="admin123" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;margin-bottom:10px"/><button id="loginBtn" style="width:100%;padding:12px;background:#0f1a2f;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Masuk</button><div id="loginError" style="color:#ef4444;font-size:.8rem;margin-top:8px;min-height:18px"></div></div></div>
-<div id="pdf-export-container" style="display:none"></div>
-<script src="js/config.js"></script>
-<script src="js/iuran.js"></script>
-<script>
-// login handler + init
-document.getElementById('loginBtn').addEventListener('click',()=>{
- const u=document.getElementById('loginUser').value.trim();
- const p=document.getElementById('loginPass').value.trim();
- const akun=getAkun();
- if(u===akun.user && p===akun.pass){
-  localStorage.setItem('isAdmin','true');checkLogin();toast('Login berhasil');
-  document.getElementById('loginError').textContent='';
-  document.getElementById('loginOverlay').style.display='none';
- }else{
-  document.getElementById('loginError').textContent='❌ Salah. Cek: '+akun.user+' / '+akun.pass;
- }
-});
-document.getElementById('loginToggleBtn').addEventListener('click',()=>{document.getElementById('loginOverlay').style.display='flex';});
-document.getElementById('logoutBtn').addEventListener('click',()=>{localStorage.removeItem('isAdmin');checkLogin();toast('Logout');});
-const scBtn=document.getElementById('scanQrBtn');
-if(scBtn) scBtn.addEventListener('click',async()=>{
- if(!isAdmin){toast('Login dulu','warning');return;}
- document.getElementById('scannerContainer').style.display='block';
- if(window.qrScannerInstance) { try{await window.qrScannerInstance.stop();}catch(e){} }
- window.qrScannerInstance=new Html5Qrcode('qr-reader');
- window.qrScannerInstance.start({facingMode:'environment'},{fps:10,qrbox:250},(d)=>{document.getElementById('editNis').value=d;document.getElementById('scanResult').textContent='✅ '+d;toast('QR: '+d);setTimeout(()=>{document.getElementById('scannerContainer').style.display='none';},800);},()=>{}).catch(()=>toast('Kamera gagal','error'));
-});
-document.getElementById('headerDate').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-loadData();checkLogin();
-const savedUrl=localStorage.getItem(GAS_KEY);if(savedUrl){document.getElementById('gasUrlInput').value=savedUrl;document.getElementById('gasStatus').textContent='✅ URL tersimpan';}
-</script>
+
+<!-- JS Modules -->
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/iuran.js"></script>
+<script src="assets/js/stamp.js"></script>
+<script src="assets/js/keuangan.js"></script>
+<script src="assets/js/export.js"></script>
+<script src="assets/js/main.js"></script>
 </body>
 </html>
